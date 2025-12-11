@@ -1,20 +1,20 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
   <title>hoshisaga2</title>
-  <!-- Viewport afinado para móviles y notch -->
-  <meta name="viewport"
-        content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
-  <!-- Cargamos Ruffle desde el archivo local -->
-  ruffle.js</script>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+  
+  <!-- Cargamos Ruffle desde archivo local -->
+  <script src="ruffle.js"></script>
+
   <style>
     html, body {
       height: 100%;
       margin: 0;
       background: #000;
     }
+
     /* Contenedor de pantalla completa con área segura (notch) */
     #screen {
       position: fixed;
@@ -24,55 +24,45 @@
       padding-bottom: env(safe-area-inset-bottom);
       padding-left: env(safe-area-inset-left);
       display: grid;
-      place-items: center;      /* centra el player */
-      overflow: hidden;         /* sin scroll */
-      touch-action: none;       /* opcional: evita zoom con doble tap */
+      place-items: center;
+      overflow: hidden;
+      touch-action: none;
       background: #000;
     }
 
-    /* El player se dimensiona por JS; aquí solo bloque */
+    /* Player y contenedor */
     #player_container, ruffle-player, .ruffle-player {
       display: block;
     }
   </style>
 </head>
 <body>
-  <!-- Contenedor de pantalla completa -->
   <div id="screen">
-    <!-- Contenedor donde se cargará el SWF -->
     <div id="player_container"></div>
   </div>
 
   <script>
-    // Tamaño lógico del SWF (ajústalo si tu archivo usa otra resolución)
+    // Tamaño lógico del SWF
     const LOGICAL_WIDTH = 800;
     const LOGICAL_HEIGHT = 600;
     const ASPECT = LOGICAL_WIDTH / LOGICAL_HEIGHT;
 
-    // Inicializamos Ruffle
+    // Inicializamos Ruffle desde archivo local
     const ruffle = window.RufflePlayer?.newest ? window.RufflePlayer.newest() : window.RufflePlayer();
     const player = ruffle.createPlayer();
-
-    // Opcional: configuración de Ruffle
-    // player.config = {
-    //   allowScriptAccess: true,
-    //   autoplay: "auto",
-    //   unmuteOverlay: "hidden"
-    // };
 
     // Agregamos el player al contenedor
     const container = document.getElementById("player_container");
     container.appendChild(player);
 
-    // Cargamos el SWF
+    // Cargamos el SWF local
     player.load("main.swf");
 
-    // Función de escalado proporcional (FIT dentro del área segura)
+    // Función de escalado proporcional
     function resizePlayer() {
       const screen = document.getElementById('screen');
       const styles = getComputedStyle(screen);
 
-      // Área segura (restando paddings)
       const safeW = window.innerWidth
         - parseFloat(styles.paddingLeft)
         - parseFloat(styles.paddingRight);
@@ -80,7 +70,6 @@
         - parseFloat(styles.paddingTop)
         - parseFloat(styles.paddingBottom);
 
-      // Calculamos el tamaño máximo que cabe manteniendo proporción
       let targetW = safeW;
       let targetH = Math.round(targetW / ASPECT);
       if (targetH > safeH) {
@@ -88,30 +77,24 @@
         targetW = Math.round(targetH * ASPECT);
       }
 
-      // Aplicamos tamaño CSS al player (no deformamos el SWF interno)
       player.style.width = targetW + 'px';
       player.style.height = targetH + 'px';
 
-      // Para centrar sin desplazamiento residual
       container.style.width = targetW + 'px';
       container.style.height = targetH + 'px';
     }
 
-    // Recalcular en eventos relevantes
+    // Recalcular tamaño en eventos de resize/orientación
     window.addEventListener('resize', resizePlayer);
     window.addEventListener('orientationchange', resizePlayer);
-
-    // En Android/iOS, la barra/teclado cambia el viewport: monitoreamos visualViewport si existe
     if (window.visualViewport) {
       window.visualViewport.addEventListener('resize', resizePlayer);
     }
 
-    // Primer cálculo tras montar el DOM y el player
+    // Primer cálculo al cargar
     document.addEventListener('DOMContentLoaded', () => {
-      // Pequeño delay para permitir que Chrome móvil estabilice la UI
       setTimeout(resizePlayer, 50);
-       });
+    });
   </script>
 </body>
-
-
+</html>
